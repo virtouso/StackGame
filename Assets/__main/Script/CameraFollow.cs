@@ -15,12 +15,9 @@ public class CameraFollow : MonoBehaviour
         _instance = this;
     }
 
-    private void Start()
-    {
 
-    }
 
-    private void Update()
+    private void LateUpdate()
     {
         Follow();
     }
@@ -35,9 +32,6 @@ public class CameraFollow : MonoBehaviour
         }
 
         transform.position = new Vector3(transform.position.x, Mathf.Lerp(transform.position.y, goal.position.y + Offset, 0.01f), transform.position.z);
-
-
-
     }
 
 

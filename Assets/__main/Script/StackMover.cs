@@ -61,176 +61,121 @@ public class StackMover : MonoBehaviour
         MoveCube();
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            CubeCut();
+            CutCube();
         }
     }
 
 
-
-
-
-
-    public void CubeCut()
+    public void CutCube()
     {
-        if (finished)
-        {
-            return;
-        }
-
-
+        if (finished) return;
+        
         Vector3 baseSize = BaseCube.GetComponent<BoxCollider>().size;
         Vector3 movingSize = MovingCube.GetComponent<BoxCollider>().size;
 
-        #region raycasts
         RaycastHit baseMaxXhit;
         Vector3 baseMaxXPosition = BaseCube.transform.position + new Vector3((baseSize.x * BaseCube.transform.localScale.x) / 2, 0, 0);
         bool baseMaxX = Physics.Raycast(baseMaxXPosition, Vector3.up, out baseMaxXhit);
-        Debug.DrawRay(BaseCube.transform.position + new Vector3((baseSize.x * BaseCube.transform.localScale.x) / 2, 0, 0), Vector3.up);
-        Debug.Log("maxbaseX:" + baseMaxX);
 
         RaycastHit baseMinXHit;
         Vector3 baseMinXPosition = BaseCube.transform.position - new Vector3((baseSize.x * BaseCube.transform.localScale.x) / 2, 0, 0);
         bool baseMinx = Physics.Raycast(baseMinXPosition, Vector3.up, out baseMinXHit);
-        Debug.DrawRay(BaseCube.transform.position - new Vector3((baseSize.x * BaseCube.transform.localScale.x) / 2, 0, 0), Vector3.up);
-        Debug.Log("MinBaseX:" + baseMinx);
-
 
         RaycastHit baseMaxZHit;
         Vector3 baseMaxZPosition = BaseCube.transform.position + new Vector3(0, 0, (baseSize.z * BaseCube.transform.localScale.z) / 2);
         bool baseMaxZ = Physics.Raycast(baseMaxZPosition, Vector3.up, out baseMaxZHit);
-        Debug.DrawRay(BaseCube.transform.position + new Vector3(0, 0, (baseSize.z * BaseCube.transform.localScale.z) / 2), Vector3.up);
-        Debug.Log("maxbaseZ:" + baseMaxZ);
 
         RaycastHit baseMinZHit;
         Vector3 baseMinZPosition = BaseCube.transform.position - new Vector3(0, 0, (baseSize.z * BaseCube.transform.localScale.z) / 2);
         bool baseMinZ = Physics.Raycast(baseMinZPosition, Vector3.up, out baseMinZHit);
-        Debug.DrawRay(BaseCube.transform.position - new Vector3(0, 0, (baseSize.z * BaseCube.transform.localScale.z) / 2), Vector3.up);
-        Debug.Log("minbaseZ:" + baseMinZ);
 
         RaycastHit movingMaxXHit;
         Vector3 movingMaxXPosition = MovingCube.transform.position + new Vector3((movingSize.x * MovingCube.transform.localScale.x) / 2, 0, 0);
         bool movingMaxX = Physics.Raycast(movingMaxXPosition, Vector3.down, out movingMaxXHit);
-        Debug.DrawRay(MovingCube.transform.position + new Vector3((movingSize.x * MovingCube.transform.localScale.x) / 2, 0, 0), Vector3.down);
-        Debug.Log("maxmovingX:" + movingMaxX);
 
         RaycastHit movingMinXHit;
         Vector3 movingMinXPosition = MovingCube.transform.position - new Vector3((movingSize.x * MovingCube.transform.localScale.x) / 2, 0, 0);
         bool movingMinx = Physics.Raycast(movingMinXPosition, Vector3.down, out movingMinXHit);
-        Debug.DrawRay(MovingCube.transform.position - new Vector3((movingSize.x * MovingCube.transform.localScale.x) / 2, 0, 0), Vector3.down);
-        Debug.Log("MinmovingX:" + movingMinx);
 
         RaycastHit movingMaxZHit;
         Vector3 movingMaxZPosition = MovingCube.transform.position + new Vector3(0, 0, (movingSize.z * MovingCube.transform.localScale.z) / 2);
         bool movingMaxZ = Physics.Raycast(movingMaxZPosition, Vector3.down, out movingMaxZHit);
-        Debug.DrawRay(MovingCube.transform.position + new Vector3(0, 0, (movingSize.z * MovingCube.transform.localScale.z) / 2), Vector3.down);
-        Debug.Log("maxmovingZ:" + movingMaxZ);
 
         RaycastHit movingMinZHit;
         Vector3 movingMinZPosition = MovingCube.transform.position - new Vector3(0, 0, (movingSize.z * MovingCube.transform.localScale.z) / 2);
         bool movingMinZ = Physics.Raycast(movingMinZPosition, Vector3.down, out movingMinZHit);
-        Debug.DrawRay(MovingCube.transform.position - new Vector3(0, 0, (movingSize.z * MovingCube.transform.localScale.z) / 2), Vector3.down);
-        Debug.Log("minMovingZ:" + movingMinZ);
-        #endregion
 
+        if (checkGameIsFinished(baseMaxX, baseMinx, baseMaxZ, baseMinZ)) { return; }
 
-
-        if (baseMaxX == false && baseMinx == false && baseMaxZ == false && baseMinZ == false)
-        {
-            finished = true;
-            GameManager._instance.PlayCounter++;
-
-            Debug.Log("its the end. you lost");
-            MovingCube.AddComponent<Rigidbody>();
-            GameManager._instance.EndScoreText.text = Score.ToString();
-            StartCoroutine(ShowEnd());
-            return;
-        }
-        #region real cutting section
         switch (xDirection)
         {
             case true:
-                if (Mathf.Abs(BaseCube.transform.position.x - MovingCube.transform.position.x) < Epsilon)
-                {
-
-                }
-
-                if (baseMaxX)
-                {
-                    MovingCube.transform.localScale = new Vector3(movingMinXHit.point.x - baseMaxXhit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
-                    MovingCube.transform.position = new Vector3((movingMinXHit.point.x + baseMaxXhit.point.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
-
-
-                    GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    additive.transform.localScale = new Vector3(movingMaxXPosition.x - baseMaxXhit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
-                    additive.transform.position = new Vector3((baseMaxXPosition.x + movingMaxXPosition.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
-                    additive.AddComponent<Rigidbody>();
-                    additive.name = "additive";
-                    Destroy(additive, 5);
-                }
-                if (baseMinx)
-                {
-                    MovingCube.transform.localScale = new Vector3(movingMaxXHit.point.x - baseMinXHit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
-                    MovingCube.transform.position = new Vector3((movingMaxXHit.point.x + baseMinXHit.point.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
-
-
-                    GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    additive.transform.localScale = new Vector3(movingMinXPosition.x - baseMinXHit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
-                    additive.transform.position = new Vector3((movingMinXPosition.x + baseMinXHit.point.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
-                    additive.AddComponent<Rigidbody>();
-                    additive.name = "additive";
-                    Destroy(additive, 5);
-                }
+                if (baseMaxX)  _cutMaxX(baseMaxXhit, baseMaxXPosition, movingMaxXPosition, movingMinXHit);
+                if (baseMinx) _cutMinX(baseMinXHit, movingMaxXHit, movingMinXPosition);
                 break;
             case false:
-                if (Mathf.Abs(BaseCube.transform.position.z - MovingCube.transform.position.z) < Epsilon)
-                {
-
-                }
-
-
-                if (baseMaxZ)
-                {
-                    MovingCube.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMinZHit.point.z - baseMaxZHit.point.z);
-                    MovingCube.transform.position = new Vector3(MovingCube.transform.localPosition.x, MovingCube.transform.position.y, (movingMinZHit.point.z + baseMaxZHit.point.z) / 2);
-
-
-                    GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    additive.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMaxZPosition.z - baseMaxZHit.point.z);
-                    additive.transform.position = new Vector3(MovingCube.transform.localPosition.x, MovingCube.transform.localPosition.y, (movingMaxZPosition.z + baseMaxZHit.point.z) / 2);
-
-                    additive.AddComponent<Rigidbody>();
-                    additive.name = "additive";
-                    Destroy(additive, 5);
-                }
-                if (baseMinZ)
-                {
-                    MovingCube.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMaxZHit.point.z - baseMinZHit.point.z);
-                    MovingCube.transform.position = new Vector3(MovingCube.transform.position.x, MovingCube.transform.position.y, (movingMaxZHit.point.z + baseMinZHit.point.z) / 2);
-
-
-                    GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    additive.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMinZPosition.z - baseMinZHit.point.z);
-                    additive.transform.position = new Vector3(MovingCube.transform.position.x, MovingCube.transform.position.y, (movingMinZPosition.z + baseMinZHit.point.z) / 2);
-
-                    additive.AddComponent<Rigidbody>();
-                    additive.name = "additive";
-                    Destroy(additive, 5);
-                }
+                if (baseMaxZ)  _cutMaxZ(baseMaxZHit, movingMaxZPosition, movingMinZHit);
+                if (baseMinZ) _cutMinZ(baseMinZHit, movingMaxZHit, movingMinZPosition);   
                 break;
         }
-        CubeGenerationTest();
-        Score++;
-        ScoreText.text = Score.ToString();
+        generateNewCube();
 
-        #endregion
+        updateScore();
+
     }
 
 
 
+    #region Cut
 
+    private void _cutMinZ(RaycastHit baseMinZHit, RaycastHit movingMaxZHit, Vector3 movingMinZPosition)
+    {
+        MovingCube.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMaxZHit.point.z - baseMinZHit.point.z);
+        MovingCube.transform.position = new Vector3(MovingCube.transform.position.x, MovingCube.transform.position.y, (movingMaxZHit.point.z + baseMinZHit.point.z) / 2);
+        GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        additive.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMinZPosition.z - baseMinZHit.point.z);
+        additive.transform.position = new Vector3(MovingCube.transform.position.x, MovingCube.transform.position.y, (movingMinZPosition.z + baseMinZHit.point.z) / 2);
+        additive.AddComponent<Rigidbody>();
+        additive.name = "additive";
+        Destroy(additive, 5);
+    }
 
+    private void _cutMaxZ(RaycastHit baseMaxZHit, Vector3 movingMaxZPosition, RaycastHit movingMinZHit)
+    {
+        MovingCube.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMinZHit.point.z - baseMaxZHit.point.z);
+        MovingCube.transform.position = new Vector3(MovingCube.transform.localPosition.x, MovingCube.transform.position.y, (movingMinZHit.point.z + baseMaxZHit.point.z) / 2);
+        GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        additive.transform.localScale = new Vector3(MovingCube.transform.localScale.x, MovingCube.transform.localScale.y, movingMaxZPosition.z - baseMaxZHit.point.z);
+        additive.transform.position = new Vector3(MovingCube.transform.localPosition.x, MovingCube.transform.localPosition.y, (movingMaxZPosition.z + baseMaxZHit.point.z) / 2);
+        additive.AddComponent<Rigidbody>();
+        additive.name = "additive";
+        Destroy(additive, 5);
+    }
 
+    private void _cutMinX(RaycastHit baseMinXHit, RaycastHit movingMaxXHit, Vector3 movingMinXPosition)
+    {
+        MovingCube.transform.localScale = new Vector3(movingMaxXHit.point.x - baseMinXHit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
+        MovingCube.transform.position = new Vector3((movingMaxXHit.point.x + baseMinXHit.point.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
+        GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        additive.transform.localScale = new Vector3(movingMinXPosition.x - baseMinXHit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
+        additive.transform.position = new Vector3((movingMinXPosition.x + baseMinXHit.point.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
+        additive.AddComponent<Rigidbody>();
+        additive.name = "additive";
+        Destroy(additive, 5);
+    }
 
+    private void _cutMaxX(RaycastHit baseMaxXhit, Vector3 baseMaxXPosition, Vector3 movingMaxXPosition, RaycastHit movingMinXHit)
+    {
+        MovingCube.transform.localScale = new Vector3(movingMinXHit.point.x - baseMaxXhit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
+        MovingCube.transform.position = new Vector3((movingMinXHit.point.x + baseMaxXhit.point.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
+        GameObject additive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        additive.transform.localScale = new Vector3(movingMaxXPosition.x - baseMaxXhit.point.x, MovingCube.transform.localScale.y, MovingCube.transform.localScale.z);
+        additive.transform.position = new Vector3((baseMaxXPosition.x + movingMaxXPosition.x) / 2, MovingCube.transform.position.y, MovingCube.transform.position.z);
+        additive.AddComponent<Rigidbody>();
+        additive.name = "additive";
+        Destroy(additive, 5);
+    } 
+    #endregion
 
 
     #region Utility
@@ -300,7 +245,7 @@ public class StackMover : MonoBehaviour
         GameManager._instance.EndPanel.SetActive(true);
         gameObject.SetActive(false);
     }
-    private void CubeGenerationTest()
+    private void generateNewCube()
     {
         BaseCube.GetComponent<BoxCollider>().enabled = false;
         BaseCube = MovingCube;
@@ -330,6 +275,28 @@ public class StackMover : MonoBehaviour
         MovingCube.transform.localScale = BaseCube.transform.localScale;
         CameraFollow._instance.goal = BaseCube.transform;
 
+    }
+    private bool checkGameIsFinished(bool baseMaxX, bool baseMinX, bool baseMaxZ, bool baseMinZ)
+    {
+
+        if (baseMaxX == false && baseMinX == false && baseMaxZ == false && baseMinZ == false)
+        {
+            finished = true;
+            GameManager._instance.PlayCounter++;
+
+            Debug.Log("its the end. you lost");
+            MovingCube.AddComponent<Rigidbody>();
+            GameManager._instance.EndScoreText.text = Score.ToString();
+            StartCoroutine(ShowEnd());
+            return true;
+        }
+
+        return false;
+    }
+    private void updateScore()
+    {
+        Score++;
+        ScoreText.text = Score.ToString();
     }
 
     #endregion
